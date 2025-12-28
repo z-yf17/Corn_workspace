@@ -1,0 +1,38 @@
+# checkpoints / weights
+checkpoints/
+weights/
+runs/
+outputs/
+logs/
+*.ckpt
+*.pth
+*.pt
+*.bin
+*.onnx
+*.safetensors
+
+# secrets
+.env
+.env.*
+*apikey*
+*token*
+*secret*
+
+# common
+__pycache__/
+.venv/
+node_modules/
+.DS_Store
+.vscode/
+.idea/
+*.log
+calibration_ori
+copy
+corn
+debug_live
+demo_data
+devel
+logs
+src
+check_rgb.py
+
