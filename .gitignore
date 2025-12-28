@@ -1,7 +1,7 @@
 # checkpoints / weights
 
 # ignore all hidden files/dirs
-./*
+/.*
 !.gitignore
 
 readme.txt
