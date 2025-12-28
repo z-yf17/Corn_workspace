@@ -143,3 +143,7 @@ Error: not all active connections found.
 (base) ➜  /home/galbot/ros_noetic_docker git:(main) ✗ ping 192.168.1.10                                         
 
 
+
+
+
+
