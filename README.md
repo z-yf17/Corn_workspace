@@ -20,7 +20,12 @@ Corn Workspace is a unified robotics codebase that provides a practical **percep
   - [Step-by-step Workflow](#step-by-step-workflow)
   - [Keyboard Controls](#keyboard-controls)
 - [Segmentation](#segmentation)
+  - [Grounded-SAM2 (Docker)](#grounded-sam2-docker)
+  - [Running Segmentation in the Online Multi-view Pipeline](#running-segmentation-in-the-online-multi-view-pipeline)
 - [Pose Estimation](#pose-estimation)
+  - [FoundationPose (Docker)](#foundationpose-docker)
+  - [Running Pose Estimation in the Online Multi-view Pipeline](#running-pose-estimation-in-the-online-multi-view-pipeline)
+- [End-to-end Online Multi-view Runtime](#end-to-end-online-multi-view-runtime)
 - [Polymetis Control Interface](#polymetis-control-interface)
 - [Models and Checkpoints](#models-and-checkpoints)
 - [Third-party Components](#third-party-components)
@@ -34,10 +39,10 @@ Corn Workspace is a unified robotics codebase that provides a practical **percep
 Tools under `calibration/` for labeling cameras and capturing extrinsic calibration samples from multiple views.
 
 ### Segmentation
-A segmentation stage intended to produce masks / ROIs for downstream pose estimation.
+Segmentation is implemented using **Grounded-SAM2**. The segmentation service subscribes to multi-view images, performs segmentation, and publishes results for downstream modules.
 
 ### Pose Estimation
-Pose estimation components that consume images (+ optional segmentation output) and produce pose results suitable for robotics tasks.
+Pose estimation is implemented using **FoundationPose**. The pose estimator consumes the (segmented) multi-view stream, estimates pose, and publishes results for downstream policy/control.
 
 ### Control (Polymetis)
 An interface designed to connect perception outputs (e.g., target pose) to robot commands via **Polymetis**.
@@ -60,9 +65,10 @@ An interface designed to connect perception outputs (e.g., target pose) to robot
 
 - Linux recommended
 - Python environment matching your local setup
-- RealSense cameras connected (for calibration)
+- RealSense cameras connected (for calibration and online pipeline)
+- Docker installed (required for segmentation and pose estimation runtimes described below)
 - **Polymetis must be running** before capturing calibration samples
-- `zmq_publisher.py` must be running to publish robot joint states (required by capture)
+- `zmq_publisher.py` must be running to publish robot joint states (required by calibration capture)
 
 ---
 
@@ -137,23 +143,92 @@ Repeat until you have enough samples for each view.
 
 ## Segmentation
 
-This repository includes (or is designed to include) an image segmentation stage that produces masks/regions of interest for downstream pose estimation.
+### Grounded-SAM2 (Docker)
 
+Segmentation is implemented using **Grounded-SAM2**.
+
+**Enter the Grounded-SAM2 segmentation Docker container:**
 ```bash
-# TODO: add your actual command(s)
-# python <your_entrypoint>.py ...
+docker start -ai Corn_docker
 ```
+
+Inside the container, activate the conda environment and run the multi-view segmentation subscriber/publisher:
+```bash
+conda activate sam
+python docker_video_sub_pub_tracking_multi_view.py
+```
+
+This process:
+- **subscribes** to a published multi-view image stream
+- performs segmentation (Grounded-SAM2)
+- **publishes** the segmented results for downstream consumers (e.g., pose estimation)
+
+### Running Segmentation in the Online Multi-view Pipeline
+
+In an online pipeline, segmentation expects that a multi-view image publisher is already running (see [End-to-end Online Multi-view Runtime](#end-to-end-online-multi-view-runtime)).
 
 ---
 
 ## Pose Estimation
 
-This repository includes (or is designed to include) a pose estimation stage that consumes images (and optionally segmentation outputs) and produces pose outputs suitable for robotic tasks.
+### FoundationPose (Docker)
 
+Pose estimation is implemented using **FoundationPose**.
+
+**Enter the FoundationPose Docker container:**
 ```bash
-# TODO: add your actual command(s)
-# python <your_entrypoint>.py ...
+cd /home/galbot/ros_noetic_docker/FoundationPose
+bash docker/run_container.sh
 ```
+
+Once inside the container, run the multi-view pose estimator:
+```bash
+python realtime_multi_view_filter.py
+```
+
+This process:
+- consumes the (segmented) multi-view stream
+- estimates pose
+- publishes pose outputs for downstream policy/control
+
+### Running Pose Estimation in the Online Multi-view Pipeline
+
+Pose estimation should be started **after**:
+1) the multi-view camera publisher is running, and  
+2) the segmentation service is running and publishing segmented outputs.
+
+See the end-to-end runtime section below.
+
+---
+
+## End-to-end Online Multi-view Runtime
+
+Below is the recommended run order for the online multi-view pipeline (multiple terminals).
+
+### Terminal 1 — Start multi-view camera publisher
+Start the multi-view camera publisher:
+```bash
+python video_publisher_multi_view.py
+```
+
+### Terminal 2 — Start segmentation (Grounded-SAM2 in Docker)
+```bash
+docker start -ai Corn_docker
+conda activate sam
+python docker_video_sub_pub_tracking_multi_view.py
+```
+
+### Terminal 3 — Start pose estimation (FoundationPose in Docker)
+```bash
+cd /home/galbot/ros_noetic_docker/FoundationPose
+bash docker/run_container.sh
+python realtime_multi_view_filter.py
+```
+
+After these are running:
+- the camera publisher provides multi-view images
+- Grounded-SAM2 subscribes, segments, and republishes results
+- FoundationPose subscribes, estimates pose, and republishes pose outputs for the policy
 
 ---
 
@@ -162,7 +237,7 @@ This repository includes (or is designed to include) a pose estimation stage tha
 This repository provides an interface/bridge to command robots through **Polymetis**, enabling perception outputs (pose/targets) to be used in control loops.
 
 ```bash
-# TODO: add your actual command(s)
+# TODO: add your actual command(s) for policy/control
 # python <your_entrypoint>.py ...
 ```
 
