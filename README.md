@@ -26,6 +26,7 @@ Corn Workspace is a unified robotics codebase that provides a practical **percep
   - [FoundationPose (Docker)](#foundationpose-docker)
   - [Running Pose Estimation in the Online Multi-view Pipeline](#running-pose-estimation-in-the-online-multi-view-pipeline)
 - [End-to-end Online Multi-view Runtime](#end-to-end-online-multi-view-runtime)
+- [Policy (Example)](#policy-example)
 - [Polymetis Control Interface](#polymetis-control-interface)
 - [Models and Checkpoints](#models-and-checkpoints)
 - [Third-party Components](#third-party-components)
@@ -232,12 +233,24 @@ After these are running:
 
 ---
 
+## Policy (Example)
+
+An example policy is provided for demonstration and testing.
+
+```bash
+python naive_policy.py
+```
+
+> This example policy is intended to consume the published perception outputs (e.g., pose) and produce actions/commands for the robot.
+
+---
+
 ## Polymetis Control Interface
 
 This repository provides an interface/bridge to command robots through **Polymetis**, enabling perception outputs (pose/targets) to be used in control loops.
 
 ```bash
-# TODO: add your actual command(s) for policy/control
+# TODO: add your actual command(s) for policy/control if different from naive_policy.py
 # python <your_entrypoint>.py ...
 ```
 
