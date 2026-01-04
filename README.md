@@ -27,6 +27,7 @@ Corn Workspace is a unified robotics codebase that provides a practical **percep
   - [FoundationPose (Docker)](#foundationpose-docker)
   - [Environment & configuration reference (Pose estimation)](#environment--configuration-reference-pose-estimation)
   - [Running Pose Estimation in the Online Multi-view Pipeline](#running-pose-estimation-in-the-online-multi-view-pipeline)
+  - [NeRF OBJ Generation (BundleSDF)](#nerf-obj-generation-bundlesdf)
 - [End-to-end Online Multi-view Runtime](#end-to-end-online-multi-view-runtime)
 - [Policy (Example)](#policy-example)
 - [Polymetis Control Interface](#polymetis-control-interface)
@@ -221,6 +222,47 @@ Pose estimation should be started **after**:
 2) the segmentation service is running and publishing segmented outputs.
 
 See the end-to-end runtime section below.
+
+### NeRF OBJ Generation (BundleSDF)
+
+You can run NeRF (BundleSDF) to generate an **OBJ** model under `FoundationPose/bundlesdf`.
+
+#### 1) Record an RGBD session
+Run the recorder from:
+`FoundationPose/bundlesdf`
+
+~~~bash
+cd /home/galbot/ros_noetic_docker/FoundationPose/bundlesdf
+python record.py
+~~~
+
+**Keyboard controls**
+- `r`: start recording
+- `t`: stop recording
+- `q`: quit
+
+**Recording requirements (important)**
+- Ensure the **calibration board is fully visible** in the camera view during recording.
+- **Only frames where the entire calibration board appears in view are valid.**
+- After recording, data will be saved under:
+  `FoundationPose/bundlesdf/rs_rgbd_aruco_record/left/`
+
+#### 2) Run NeRF to generate the OBJ
+From the same directory:
+
+~~~bash
+cd /home/galbot/ros_noetic_docker/FoundationPose/bundlesdf
+python run_nerf_rs_session.py
+~~~
+
+Notes:
+- This step can take **~1 hour** depending on hardware and recording length.
+- You should **filter/select frames** with:
+  - **good masks**
+  - a **complete and accurate calibration-board bounding frame**
+  - stable views where the full board is clearly visible
+
+(See the script output/logs for the exact OBJ output directory produced by your configuration.)
 
 ---
 
