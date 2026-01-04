@@ -42,3 +42,9 @@ logs
 src
 check_rgb.py
 
+!/.gitmodules
+!/.github/
+
+
+# Do not commit local RGBD recordings
+FoundationPose/bundlesdf/rs_rgbd_aruco_record/
